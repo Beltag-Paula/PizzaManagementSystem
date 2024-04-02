@@ -1,3 +1,4 @@
+package comp;
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
@@ -5,6 +6,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
 import java.awt.Font;
 import java.awt.Image;
 
@@ -19,8 +22,14 @@ import javax.swing.SwingConstants;
 import javax.swing.JTextField;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+
+import net.proteanit.sql.DbUtils;
+
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
+import java.awt.Toolkit;
 
 public class FastFoodManagementSystem extends JFrame {
 
@@ -53,7 +62,13 @@ public class FastFoodManagementSystem extends JFrame {
     private JButton btnNewButton_2 = new JButton("-");
     private final ButtonGroup buttonGroup = new ButtonGroup();
     private final ButtonGroup buttonGroup_1 = new ButtonGroup();
+    private final JButton btnExit = new JButton("Exit Application");
 	
+	
+
+
+
+
 	/**
 	 * Launch the application.
 	 */
@@ -228,7 +243,7 @@ public class FastFoodManagementSystem extends JFrame {
 		contentPane.add(lblNewLabel_9);
 		
 		//textFieldOrderDetails = new JTextField();
-		textFieldOrderDetails.setBounds(344, 303, 553, 441);
+		textFieldOrderDetails.setBounds(370, 303, 416, 441);
 		contentPane.add(textFieldOrderDetails);
 		textFieldOrderDetails.setColumns(10);
 		
@@ -263,6 +278,14 @@ public class FastFoodManagementSystem extends JFrame {
 		//JButton btnNewButton_2 = new JButton("-");
 		btnNewButton_2.setBounds(5, 611, 89, 23);
 		contentPane.add(btnNewButton_2);
+		btnExit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose();
+			}
+		});
+		btnExit.setBounds(618, 790, 144, 23);
+		
+		contentPane.add(btnExit);
 	}
 	
 	
@@ -306,27 +329,27 @@ public class FastFoodManagementSystem extends JFrame {
 		
 		if(chkExtraCheese.isSelected()) {
 			//addOnPrice += 10.00;
-			addOns = addOns +"\n\t" + chkExtraCheese.getText() + " " + "10.00";
+			addOns = addOns +chkExtraCheese.getText() + " " + "10.00";
 		}
 		if(chkExtraMeat.isSelected()) {
 			//addOnPrice += 15.00;
-			addOns = addOns +"\n\t" + chkExtraMeat.getText() + " " + "15.00";
+			addOns = addOns +chkExtraMeat.getText() + " " + "15.00";
 		}
 		if(chkMushroom.isSelected()) {
 			//addOnPrice += 7.00;
-			addOns = addOns +"\n\t" + chkMushroom.getText() + " " + "7.00";
+			addOns = addOns +chkMushroom.getText() + " " + "7.00";
 		}
 		if(chkBlackOlives.isSelected()) {
 			//addOnPrice += 8.00;
-			addOns = addOns +"\n\t" + chkBlackOlives.getText() + " " + "8.00";
+			addOns = addOns +chkBlackOlives.getText() + " " + "8.00";
 		}
 		if(chkOnions.isSelected()) {
 			//addOnPrice += 5.00;
-			addOns = addOns +"\n\t" + chkOnions.getText() + " " + "5.00";
+			addOns = addOns +chkOnions.getText() + " " + "5.00";
 		}
 		if(chkSausage.isSelected()) {
 			//addOnPrice += 10.00;
-			addOns = addOns +"\n\t" + chkSausage.getText() + " " + "10.00";
+			addOns = addOns +chkSausage.getText() + " " + "10.00";
 		}
 		
 		return addOns;
@@ -419,6 +442,32 @@ public class FastFoodManagementSystem extends JFrame {
 		return subTotal;
 	}
 	
+	private void StoreToOrdersInfoDatabase(double total) {
+		Connection con3 = null;
+		con3=sqliteConnection.dbConnector2();
+		
+		try {
+			
+			String query = "insert into OI (FlavourPizza,SizePizza,PricePizza,addOns,ServiceMethods,Quantity,Total) values (?,?,?,?,?,?,?)";
+			PreparedStatement pst = con3.prepareStatement(query);
+			pst.setString(1, (String) cboFlavour.getSelectedItem());
+			pst.setString(2, sizeOfPizza());
+			pst.setDouble(3, priceOfPizza());
+			pst.setString(4, addOnPrice());
+			pst.setString(5, serviceMethod());
+			pst.setInt(6, qty);
+			pst.setDouble(7, total);
+			pst.execute();
+			
+			
+			
+			pst.close();
+			}
+			catch (Exception t){
+				t.printStackTrace();
+			}
+	}
+	
 	private void showOrderDetails() {
 		//int quantity = Integer.parseInt(lblQuantity2.getText());
 		double total = (subTotal() * qty) + serviceFee() ;
@@ -431,5 +480,9 @@ public class FastFoodManagementSystem extends JFrame {
 		String quantity2 = "\n\nQUANTITY : " +"\t\t\tx"+ qty;
 		String row = "\n\n************************************************************************";
 		textFieldOrderDetails.setText("\n"+flavour+ "\n\n" + size + "\n\n" + price + "\n\n" + addOns +"\n\n"+delivery +quantity2+row+"\n\nTOTAL : " +"\t"+ total);
+		
+		//////////////////////////////////////////////////////////////////////////////////////////
+		
+		StoreToOrdersInfoDatabase(total);
 	}
 }
